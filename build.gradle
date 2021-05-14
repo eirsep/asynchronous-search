@@ -214,6 +214,11 @@ integTest {
     }
 }
 
+tasks.named('forbiddenApisMain').configure {
+    //to run bwc tests on opendistro apis which are set up with replace routes.
+    ignoreFailures = true
+}
+
 run {
     useCluster project.testClusters.integTest
     doFirst {
