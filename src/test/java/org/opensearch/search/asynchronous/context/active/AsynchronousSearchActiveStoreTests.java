@@ -63,8 +63,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.opensearch.search.asynchronous.commons.AsynchronousSearchTestCase.mockAsynchronousSearchProgressListener;
-
 public class AsynchronousSearchActiveStoreTests extends OpenSearchTestCase {
     private ClusterSettings clusterSettings;
     private ExecutorBuilder<?> executorBuilder;
@@ -108,7 +106,8 @@ public class AsynchronousSearchActiveStoreTests extends OpenSearchTestCase {
                 ThreadPool finalTestThreadPool1 = testThreadPool;
                 runnables.add(() -> {
                     try {
-                        AsynchronousSearchProgressListener asProgressListener = AsynchronousSearchTestCase.mockAsynchronousSearchProgressListener(
+                        AsynchronousSearchProgressListener asProgressListener =
+                                AsynchronousSearchTestCase.mockAsynchronousSearchProgressListener(
                                 finalTestThreadPool1);
                         AsynchronousSearchContextId asContextId = new AsynchronousSearchContextId(UUID.randomUUID().toString(),
                                 runningContexts.incrementAndGet());

@@ -72,7 +72,8 @@ public class RestSubmitAsynchronousSearchAction extends BaseRestHandler {
     @Override
     public List<ReplacedRoute> replacedRoutes() {
         return Arrays.asList(
-                new ReplacedRoute(POST, "/{index}" + AsynchronousSearchPlugin.BASE_URI, POST, "/{index}" + AsynchronousSearchPlugin.LEGACY_BASE_URI),
+                new ReplacedRoute(POST, "/{index}" + AsynchronousSearchPlugin.BASE_URI,
+                        POST, "/{index}" + AsynchronousSearchPlugin.LEGACY_BASE_URI),
                 new ReplacedRoute(POST, AsynchronousSearchPlugin.BASE_URI, POST, AsynchronousSearchPlugin.LEGACY_BASE_URI)
         );
     }

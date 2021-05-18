@@ -189,7 +189,8 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
      * @return the AsynchronousSearchContext for the submitted request
      */
     public AsynchronousSearchContext createAndStoreContext(SubmitAsynchronousSearchRequest request, long relativeStartTimeMillis,
-                                                           Supplier<InternalAggregation.ReduceContextBuilder> reduceContextBuilder, User user) {
+                                                           Supplier<InternalAggregation.ReduceContextBuilder> reduceContextBuilder,
+                                                           User user) {
         validateRequest(request);
         AsynchronousSearchContextId asynchronousSearchContextId = new AsynchronousSearchContextId(UUIDs.base64UUID(),
                 idGenerator.incrementAndGet());
@@ -281,8 +282,8 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
         Map<Long, AsynchronousSearchActiveContext> allContexts = asynchronousSearchActiveStore.getAllContexts();
         return Collections.unmodifiableSet(allContexts.values().stream()
                 .filter(Objects::nonNull)
-                .filter((c) -> EnumSet.of(AsynchronousSearchState.CLOSED, AsynchronousSearchState.PERSIST_FAILED).contains(c.getAsynchronousSearchState()) ||
-                        isOverRunning(c) || c.isExpired())
+                .filter((c) -> EnumSet.of(AsynchronousSearchState.CLOSED, AsynchronousSearchState.PERSIST_FAILED)
+                        .contains(c.getAsynchronousSearchState()) || isOverRunning(c) || c.isExpired())
                 .collect(Collectors.toSet()));
     }
 
@@ -586,7 +587,8 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
                 (s, e) -> ((AsynchronousSearchActiveContext) e.asynchronousSearchContext()).setTask(e.getSearchTask()),
                 (contextId, listener) -> listener.onContextRunning(contextId), SearchStartedEvent.class));
 
-        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.RUNNING, AsynchronousSearchState.SUCCEEDED,
+        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.RUNNING,
+                AsynchronousSearchState.SUCCEEDED,
                 (s, e) -> ((AsynchronousSearchActiveContext) e.asynchronousSearchContext()).processSearchResponse(e.getSearchResponse()),
                 (contextId, listener) -> listener.onContextCompleted(contextId), SearchSuccessfulEvent.class));
 
@@ -594,21 +596,25 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
                 (s, e) -> ((AsynchronousSearchActiveContext) e.asynchronousSearchContext()).processSearchFailure(e.getException()),
                 (contextId, listener) -> listener.onContextFailed(contextId), SearchFailureEvent.class));
 
-        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.SUCCEEDED, AsynchronousSearchState.PERSISTING,
+        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.SUCCEEDED,
+                AsynchronousSearchState.PERSISTING,
                 (s, e) -> asynchronousSearchPostProcessor.persistResponse((AsynchronousSearchActiveContext) e.asynchronousSearchContext(),
                         e.getAsynchronousSearchPersistenceModel()),
                 (contextId, listener) -> {}, BeginPersistEvent.class));
 
-        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.FAILED, AsynchronousSearchState.PERSISTING,
+        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.FAILED,
+                AsynchronousSearchState.PERSISTING,
                 (s, e) -> asynchronousSearchPostProcessor.persistResponse((AsynchronousSearchActiveContext) e.asynchronousSearchContext(),
                         e.getAsynchronousSearchPersistenceModel()),
                 (contextId, listener) -> {}, BeginPersistEvent.class));
 
-        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.PERSISTING, AsynchronousSearchState.PERSIST_SUCCEEDED,
+        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.PERSISTING,
+                AsynchronousSearchState.PERSIST_SUCCEEDED,
                 (s, e) -> {},
                 (contextId, listener) -> listener.onContextPersisted(contextId), SearchResponsePersistedEvent.class));
 
-        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.PERSISTING, AsynchronousSearchState.PERSIST_FAILED,
+        stateMachine.registerTransition(new AsynchronousSearchTransition<>(AsynchronousSearchState.PERSISTING,
+                AsynchronousSearchState.PERSIST_FAILED,
                 (s, e) -> {},
                 (contextId, listener) -> listener.onContextPersistFailed(contextId), SearchResponsePersistFailedEvent.class));
 
@@ -616,7 +622,9 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
                 (s, e) -> asynchronousSearchActiveStore.freeContext(e.asynchronousSearchContext().getContextId()),
                 (contextId, listener) -> listener.onRunningContextDeleted(contextId), SearchDeletedEvent.class));
 
-        for (AsynchronousSearchState state : EnumSet.of(AsynchronousSearchState.PERSISTING, AsynchronousSearchState.PERSIST_SUCCEEDED, AsynchronousSearchState.PERSIST_FAILED, AsynchronousSearchState.SUCCEEDED, AsynchronousSearchState.FAILED, AsynchronousSearchState.INIT)) {
+        for (AsynchronousSearchState state : EnumSet.of(AsynchronousSearchState.PERSISTING, AsynchronousSearchState.PERSIST_SUCCEEDED,
+                AsynchronousSearchState.PERSIST_FAILED, AsynchronousSearchState.SUCCEEDED, AsynchronousSearchState.FAILED,
+                AsynchronousSearchState.INIT)) {
             stateMachine.registerTransition(new AsynchronousSearchTransition<>(state, AsynchronousSearchState.CLOSED,
                     (s, e) -> asynchronousSearchActiveStore.freeContext(e.asynchronousSearchContext().getContextId()),
                     (contextId, listener) -> listener.onContextDeleted(contextId), SearchDeletedEvent.class));
@@ -688,7 +696,8 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
      * @return Where the search has been running beyond the max search running time.
      */
     private boolean isOverRunning(AsynchronousSearchActiveContext asynchronousSearchActiveContext) {
-        return EnumSet.of(AsynchronousSearchState.RUNNING, AsynchronousSearchState.INIT).contains(asynchronousSearchActiveContext.getAsynchronousSearchState()) &&
+        return EnumSet.of(AsynchronousSearchState.RUNNING, AsynchronousSearchState.INIT)
+                .contains(asynchronousSearchActiveContext.getAsynchronousSearchState()) &&
                 asynchronousSearchActiveContext.getStartTimeMillis() + maxSearchRunningTime < threadPool.absoluteTimeInMillis();
     }
 

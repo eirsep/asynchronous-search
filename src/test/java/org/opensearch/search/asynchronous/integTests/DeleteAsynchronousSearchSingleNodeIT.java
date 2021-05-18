@@ -137,7 +137,8 @@ public class DeleteAsynchronousSearchSingleNodeIT extends AsynchronousSearchSing
         List<SearchDelayPlugin> plugins = initPluginFactory();
         SearchRequest searchRequest = new SearchRequest("index");
         searchRequest.source(new SearchSourceBuilder());
-        searchRequest.source().query(scriptQuery(new Script(ScriptType.INLINE, "mockscript", SearchDelayPlugin.SCRIPT_NAME, Collections.emptyMap())));
+        searchRequest.source().query(scriptQuery(new Script(ScriptType.INLINE, "mockscript",
+                SearchDelayPlugin.SCRIPT_NAME, Collections.emptyMap())));
         SubmitAsynchronousSearchRequest submitAsynchronousSearchRequest = new SubmitAsynchronousSearchRequest(searchRequest);
         submitAsynchronousSearchRequest.keepOnCompletion(true);
         submitAsynchronousSearchRequest.waitForCompletionTimeout(TimeValue.timeValueMillis(randomLongBetween(1, 500)));
@@ -157,7 +158,8 @@ public class DeleteAsynchronousSearchSingleNodeIT extends AsynchronousSearchSing
         List<SearchDelayPlugin> plugins = initPluginFactory();
         SearchRequest searchRequest = new SearchRequest("index");
         searchRequest.source(new SearchSourceBuilder());
-        searchRequest.source().query(scriptQuery(new Script(ScriptType.INLINE, "mockscript", SearchDelayPlugin.SCRIPT_NAME, Collections.emptyMap())));
+        searchRequest.source().query(scriptQuery(new Script(ScriptType.INLINE, "mockscript",
+                SearchDelayPlugin.SCRIPT_NAME, Collections.emptyMap())));
         SubmitAsynchronousSearchRequest submitAsynchronousSearchRequest = new SubmitAsynchronousSearchRequest(searchRequest);
         submitAsynchronousSearchRequest.keepOnCompletion(false);
         submitAsynchronousSearchRequest.waitForCompletionTimeout(TimeValue.timeValueMillis(randomLongBetween(1, 500)));

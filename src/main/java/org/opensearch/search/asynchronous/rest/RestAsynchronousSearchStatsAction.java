@@ -25,8 +25,6 @@
 
 package org.opensearch.search.asynchronous.rest;
 
-import org.opensearch.search.asynchronous.action.AsynchronousSearchStatsAction;
-import org.opensearch.search.asynchronous.request.AsynchronousSearchStatsRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.opensearch.client.node.NodeClient;
@@ -34,7 +32,9 @@ import org.opensearch.common.Strings;
 import org.opensearch.rest.BaseRestHandler;
 import org.opensearch.rest.RestRequest;
 import org.opensearch.rest.action.RestActions;
+import org.opensearch.search.asynchronous.action.AsynchronousSearchStatsAction;
 import org.opensearch.search.asynchronous.plugin.AsynchronousSearchPlugin;
+import org.opensearch.search.asynchronous.request.AsynchronousSearchStatsRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,7 +74,8 @@ public class RestAsynchronousSearchStatsAction extends BaseRestHandler {
     public List<ReplacedRoute> replacedRoutes() {
         return Arrays.asList(new ReplacedRoute(GET, AsynchronousSearchPlugin.BASE_URI + "/_nodes/{nodeId}/stats",
                         GET, AsynchronousSearchPlugin.LEGACY_BASE_URI + "/_nodes/{nodeId}/stats"),
-                new ReplacedRoute(GET, AsynchronousSearchPlugin.BASE_URI + "/stats", GET, AsynchronousSearchPlugin.LEGACY_BASE_URI + "/stats")
+                new ReplacedRoute(GET, AsynchronousSearchPlugin.BASE_URI + "/stats",
+                        GET, AsynchronousSearchPlugin.LEGACY_BASE_URI + "/stats")
         );
     }
 

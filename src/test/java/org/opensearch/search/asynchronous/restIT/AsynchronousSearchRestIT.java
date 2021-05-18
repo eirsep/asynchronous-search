@@ -123,7 +123,8 @@ public class AsynchronousSearchRestIT extends AsynchronousSearchRestTestCase {
         assertHitCount(submitResponse.getSearchResponse(), 5L);
         GetAsynchronousSearchRequest getAsynchronousSearchRequest = new GetAsynchronousSearchRequest(submitResponse.getId());
         AsynchronousSearchResponse getResponse = getAssertedAsynchronousSearchResponse(submitResponse, getAsynchronousSearchRequest);
-        assertEquals(TestUtils.getResponseAsMap(getResponse.getSearchResponse()), TestUtils.getResponseAsMap(submitResponse.getSearchResponse()));
+        assertEquals(TestUtils.getResponseAsMap(getResponse.getSearchResponse()),
+                TestUtils.getResponseAsMap(submitResponse.getSearchResponse()));
         executeDeleteAsynchronousSearch(new DeleteAsynchronousSearchRequest(submitResponse.getId()));
     }
 

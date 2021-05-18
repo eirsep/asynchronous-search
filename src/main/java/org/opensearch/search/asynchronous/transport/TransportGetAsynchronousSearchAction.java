@@ -109,7 +109,8 @@ public class TransportGetAsynchronousSearchAction extends TransportAsynchronousS
             AsynchronousSearchProgressListener progressActionListener = context.getAsynchronousSearchProgressListener();
             assert progressActionListener != null : "progress listener cannot be null";
             PrioritizedActionListener<AsynchronousSearchResponse> wrappedListener = AsynchronousSearchTimeoutWrapper.wrapScheduledTimeout(
-                    threadPool, request.getWaitForCompletionTimeout(), AsynchronousSearchPlugin.OPEN_DISTRO_ASYNC_SEARCH_GENERIC_THREAD_POOL_NAME,
+                    threadPool, request.getWaitForCompletionTimeout(),
+                    AsynchronousSearchPlugin.OPEN_DISTRO_ASYNC_SEARCH_GENERIC_THREAD_POOL_NAME,
                     listener,
                     (actionListener) -> {
                         progressActionListener.searchProgressActionListener().removeListener(actionListener);
