@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.amazon.opendistroforelasticsearch.search.asynchronous.utils.RestTestUtils.endpoint;
 import static com.amazon.opendistroforelasticsearch.search.asynchronous.utils.TestUtils.getResponseAsMap;
 import static org.hamcrest.Matchers.greaterThan;
 
@@ -160,11 +159,11 @@ public class AsynchronousSearchRestIT extends AsynchronousSearchRestTestCase {
     }
 
     public void testBackwardCompatibilityWithOpenDistro() throws IOException {
-        Request request = new Request(HttpPost.METHOD_NAME,
-                endpoint(new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI.substring(1)));
+        Request request = new Request(HttpPost.METHOD_NAME, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI +
+                "?keep_on_completion=true");
         Response resp = client().performRequest(request);
         assertEquals(resp.getStatusLine().getStatusCode(), 200);
-        request = new Request(HttpGet.METHOD_NAME,AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI + "/stats");
+        request = new Request(HttpGet.METHOD_NAME, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI + "/stats");
         resp = client().performRequest(request);
         assertEquals(resp.getStatusLine().getStatusCode(), 200);
     }
