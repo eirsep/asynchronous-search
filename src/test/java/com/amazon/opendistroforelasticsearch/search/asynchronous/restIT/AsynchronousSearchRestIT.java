@@ -31,7 +31,6 @@ import com.amazon.opendistroforelasticsearch.search.asynchronous.request.DeleteA
 import com.amazon.opendistroforelasticsearch.search.asynchronous.request.GetAsynchronousSearchRequest;
 import com.amazon.opendistroforelasticsearch.search.asynchronous.request.SubmitAsynchronousSearchRequest;
 import com.amazon.opendistroforelasticsearch.search.asynchronous.response.AsynchronousSearchResponse;
-import com.amazon.opendistroforelasticsearch.search.asynchronous.utils.RestTestUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.client.Request;
@@ -46,13 +45,7 @@ import java.util.List;
 
 import static com.amazon.opendistroforelasticsearch.search.asynchronous.utils.RestTestUtils.endpoint;
 import static com.amazon.opendistroforelasticsearch.search.asynchronous.utils.TestUtils.getResponseAsMap;
-import static org.apache.lucene.util.LuceneTestCase.expectThrows;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class AsynchronousSearchRestIT extends AsynchronousSearchRestTestCase {
 
