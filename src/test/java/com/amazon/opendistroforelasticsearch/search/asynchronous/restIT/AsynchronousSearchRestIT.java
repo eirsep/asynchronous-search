@@ -159,14 +159,13 @@ public class AsynchronousSearchRestIT extends AsynchronousSearchRestTestCase {
     }
 
     public void testBackwardCompatibilityWithOpenDistro() throws IOException {
-        SearchRequest searchRequest = new SearchRequest("test");
-        TimeValue keepAlive = TimeValue.timeValueHours(5);
-        searchRequest.source(new SearchSourceBuilder());
-        SubmitAsynchronousSearchRequest submitAsynchronousSearchRequest = new SubmitAsynchronousSearchRequest(searchRequest);
-        submitAsynchronousSearchRequest.keepOnCompletion(true);
         Request request = new Request(HttpPost.METHOD_NAME,
                 endpoint( new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI.substring(1)));
         Response resp = client().performRequest(request);
+        assertEquals(resp.getStatusLine().getStatusCode(), 200);
+        request = new Request(HttpPost.METHOD_NAME,
+                endpoint( new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI + "/stats"));
+        resp = client().performRequest(request);
         assertEquals(resp.getStatusLine().getStatusCode(), 200);
     }
 }
