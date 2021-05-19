@@ -31,6 +31,7 @@ import com.amazon.opendistroforelasticsearch.search.asynchronous.request.DeleteA
 import com.amazon.opendistroforelasticsearch.search.asynchronous.request.GetAsynchronousSearchRequest;
 import com.amazon.opendistroforelasticsearch.search.asynchronous.request.SubmitAsynchronousSearchRequest;
 import com.amazon.opendistroforelasticsearch.search.asynchronous.response.AsynchronousSearchResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.client.Request;
@@ -160,11 +161,11 @@ public class AsynchronousSearchRestIT extends AsynchronousSearchRestTestCase {
 
     public void testBackwardCompatibilityWithOpenDistro() throws IOException {
         Request request = new Request(HttpPost.METHOD_NAME,
-                endpoint( new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI.substring(1)));
+                endpoint(new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI.substring(1)));
         Response resp = client().performRequest(request);
         assertEquals(resp.getStatusLine().getStatusCode(), 200);
-        request = new Request(HttpPost.METHOD_NAME,
-                endpoint( new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI + "/stats"));
+        request = new Request(HttpGet.METHOD_NAME,
+                endpoint(new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI + "/stats"));
         resp = client().performRequest(request);
         assertEquals(resp.getStatusLine().getStatusCode(), 200);
     }
