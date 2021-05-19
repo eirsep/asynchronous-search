@@ -165,7 +165,7 @@ public class AsynchronousSearchRestIT extends AsynchronousSearchRestTestCase {
         Response resp = client().performRequest(request);
         assertEquals(resp.getStatusLine().getStatusCode(), 200);
         request = new Request(HttpGet.METHOD_NAME,
-                endpoint(new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI + "/stats"));
+                endpoint(new String[]{}, AsynchronousSearchPlugin.LEGACY_OPENDISTRO_BASE_URI + "stats"));
         resp = client().performRequest(request);
         assertEquals(resp.getStatusLine().getStatusCode(), 200);
     }
