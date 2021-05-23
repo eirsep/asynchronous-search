@@ -81,4 +81,11 @@ public class AsynchronousSearchSettingsTests extends OpenSearchTestCase {
                 LegacyOpendistroAsynchronousSearchSettings.PERSIST_SEARCH_FAILURES_SETTING.get(Settings.EMPTY)
         );
     }
+
+    public void testSettingsGetValue() {
+        Settings settings =
+                Settings.builder().put(AsynchronousSearchActiveStore.NODE_CONCURRENT_RUNNING_SEARCHES_SETTING.getKey(), "200").build();
+        assertEquals(AsynchronousSearchActiveStore.NODE_CONCURRENT_RUNNING_SEARCHES_SETTING.get(settings).intValue(), 200);
+        assertEquals(LegacyOpendistroAsynchronousSearchSettings.NODE_CONCURRENT_RUNNING_SEARCHES_SETTING.get(settings).intValue(), 20);
+    }
 }
