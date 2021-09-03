@@ -87,6 +87,10 @@ public class AsynchronousSearchProgressListener extends SearchProgressActionList
     @Override
     protected void onListShards(List<SearchShard> shards, List<SearchShard> skippedShards, SearchResponse.Clusters clusters,
                                 boolean fetchPhase) {
+        try {
+            Thread.sleep(5000);
+        } catch (Exception e) {
+        }
         partialResultsHolder.hasFetchPhase.set(fetchPhase);
         partialResultsHolder.totalShards.set(shards.size());
         partialResultsHolder.skippedShards.set(skippedShards.size());
@@ -135,11 +139,19 @@ public class AsynchronousSearchProgressListener extends SearchProgressActionList
 
     @Override
     protected void onQueryResult(int shardIndex) {
+        try {
+            Thread.sleep(5000);
+        } catch (Exception e) {
+        }
         assert shardIndex < partialResultsHolder.totalShards.get();
         onShardResult(shardIndex);
     }
 
     private synchronized void onShardResult(int shardIndex) {
+        try {
+            Thread.sleep(5000);
+        } catch (Exception e) {
+        }
         if (partialResultsHolder.successfulShardIds.contains(shardIndex) == false) {
             partialResultsHolder.successfulShardIds.add(shardIndex);
             partialResultsHolder.successfulShards.incrementAndGet();

@@ -31,41 +31,41 @@ apply plugin: 'jacoco'
 
 // Get gradle to generate the required jvm agent arg for us using a dummy tasks of type Test. Unfortunately Elastic's
 // testing tasks don't derive from Test so the jacoco plugin can't do this automatically.
-def jacocoDir = "${buildDir}/jacoco"
+//def jacocoDir = "${buildDir}/jacoco"
 
 task dummyTest(type: Test) {
     enabled = false
     workingDir = file("/") // Force absolute path to jacoco agent jar
-    jacoco {
+  /*  jacoco {
         destinationFile = file("${jacocoDir}/test.exec")
         destinationFile.parentFile.mkdirs()
         jmx = true
-    }
+    }*/
 }
 
 task dummyIntegTest(type: Test) {
     enabled = false
     workingDir = file("/") // Force absolute path to jacoco agent jar
-    jacoco {
+   /* jacoco {
         destinationFile = file("${jacocoDir}/integTest.exec")
         destinationFile.parentFile.mkdirs()
         jmx = true
-    }
+    }*/
 }
 task dummyIntegTestRunner(type: Test) {
     enabled = false
     workingDir = file("/") // Force absolute path to jacoco agent jar
-    jacoco {
+   /* jacoco {
         destinationFile = file("${jacocoDir}/integTestRunner.exec")
         destinationFile.parentFile.mkdirs()
         jmx = true
-    }
+    }*/
 }
 
 integTest {
-    systemProperty 'jacoco.dir', "${jacocoDir}"
+   // systemProperty 'jacoco.dir', "${jacocoDir}"
 }
-
+/*
 jacocoTestReport {
     dependsOn integTest, test
     executionData.from dummyTest.jacoco.destinationFile, dummyIntegTest.jacoco.destinationFile, dummyIntegTestRunner.jacoco.destinationFile
@@ -77,11 +77,11 @@ jacocoTestReport {
         xml.enabled = true // for coverlay
     }
 }
-
+*/
 
 allprojects {
     afterEvaluate {
-        jacocoTestReport.dependsOn integTest
+  //      jacocoTestReport.dependsOn integTest
 
         testClusters.integTest {
             jvmArgs " ${dummyIntegTest.jacoco.getAsJvmArg()}".replace('javaagent:', 'javaagent:/')
