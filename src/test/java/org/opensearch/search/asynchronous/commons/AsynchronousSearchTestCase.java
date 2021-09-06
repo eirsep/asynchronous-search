@@ -40,7 +40,7 @@ public abstract class AsynchronousSearchTestCase extends OpenSearchTestCase {
 
     public static AsynchronousSearchProgressListener mockAsynchronousSearchProgressListener(ThreadPool threadPool) {
         return new AsynchronousSearchProgressListener(threadPool.absoluteTimeInMillis(), r -> null, e -> null, threadPool.generic(),
-                threadPool::relativeTimeInMillis, () -> getReduceContextBuilder());
+                threadPool::relativeTimeInMillis, () -> getReduceContextBuilder(), lock);
     }
 
     public static AsynchronousSearchProgressListener mockAsynchronousSearchProgressListener(ThreadPool threadPool,
@@ -48,7 +48,7 @@ public abstract class AsynchronousSearchTestCase extends OpenSearchTestCase {
                                                                        Function<Exception, AsynchronousSearchResponse> failureFunction) {
         return new AsynchronousSearchProgressListener(threadPool.absoluteTimeInMillis(), successFunction, failureFunction,
                 threadPool.generic(),
-                threadPool::relativeTimeInMillis, () -> getReduceContextBuilder());
+                threadPool::relativeTimeInMillis, () -> getReduceContextBuilder(), lock);
     }
 
     private static InternalAggregation.ReduceContextBuilder getReduceContextBuilder() {

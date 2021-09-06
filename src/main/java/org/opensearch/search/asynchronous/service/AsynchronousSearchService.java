@@ -147,6 +147,7 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
     private final AsynchronousSearchStateMachine asynchronousSearchStateMachine;
     private final NamedWriteableRegistry namedWriteableRegistry;
     private final AsynchronousSearchContextEventListener contextEventListener;
+    private final Object lock;
     private volatile boolean persistSearchFailure;
 
     public AsynchronousSearchService(AsynchronousSearchPersistenceService asynchronousSearchPersistenceService,
@@ -175,6 +176,7 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
         this.asynchronousSearchPostProcessor = new AsynchronousSearchPostProcessor(persistenceService, asynchronousSearchActiveStore,
                 asynchronousSearchStateMachine, this::freeActiveContext, threadPool, clusterService);
         this.namedWriteableRegistry = namedWriteableRegistry;
+        lock = new Object();
     }
 
     private void setMaxSearchRunningTime(TimeValue maxSearchRunningTime) {
@@ -194,12 +196,14 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
      *
      * @param request                 the SubmitAsynchronousSearchRequest
      * @param relativeStartTimeMillis the relative start time of the search in millis
-     * @param user                    current user
      * @param reduceContextBuilder    the reference for the reduceContextBuilder
+     * @param user                    current user
+     * @param lock                    testing blocked threads
      * @return the AsynchronousSearchContext for the submitted request
      */
     public AsynchronousSearchContext createAndStoreContext(SubmitAsynchronousSearchRequest request, long relativeStartTimeMillis,
-                                                    Supplier<InternalAggregation.ReduceContextBuilder> reduceContextBuilder, User user) {
+                                                           Supplier<InternalAggregation.ReduceContextBuilder> reduceContextBuilder,
+                                                           User user, Object lock) {
         validateRequest(request);
         AsynchronousSearchContextId asynchronousSearchContextId = new AsynchronousSearchContextId(UUIDs.base64UUID(),
                 idGenerator.incrementAndGet());
@@ -209,7 +213,7 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
                 (e) -> asynchronousSearchPostProcessor.processSearchFailure(e, asynchronousSearchContextId),
                 threadPool.executor(AsynchronousSearchPlugin.OPEN_DISTRO_ASYNC_SEARCH_GENERIC_THREAD_POOL_NAME),
                 threadPool::relativeTimeInMillis,
-                reduceContextBuilder);
+                reduceContextBuilder, lock);
         AsynchronousSearchActiveContext asynchronousSearchContext = new AsynchronousSearchActiveContext(asynchronousSearchContextId,
                 clusterService.localNode().getId(), request.getKeepAlive(), request.getKeepOnCompletion(), threadPool, currentTimeSupplier,
                 progressActionListener, user, () -> persistSearchFailure);
@@ -223,7 +227,7 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
      * Stores information of the {@linkplain SearchTask} in the asynchronous search and signals start of the the underlying
      * {@linkplain SearchAction}
      *
-     * @param searchTask           The {@linkplain SearchTask} which stores information of the currently running {@linkplain SearchTask}
+     * @param searchTask The {@linkplain SearchTask} which stores information of the currently running {@linkplain SearchTask}
      * @param asynchronousSearchContextId the id of the active asyncsearch context
      */
     public void bootstrapSearch(SearchTask searchTask, AsynchronousSearchContextId asynchronousSearchContextId) {
@@ -246,10 +250,10 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
      * {@linkplain AsynchronousSearchPersistenceContext}, else throws
      * {@linkplain ResourceNotFoundException}
      *
-     * @param id                   The asynchronous search id
+     * @param id                          The asynchronous search id
      * @param asynchronousSearchContextId the Async search context id
-     * @param user                 current user
-     * @param listener             to be invoked on finding an {@linkplain AsynchronousSearchContext}
+     * @param user                        current user
+     * @param listener                    to be invoked on finding an {@linkplain AsynchronousSearchContext}
      */
     public void findContext(String id, AsynchronousSearchContextId asynchronousSearchContextId, User user,
                             ActionListener<AsynchronousSearchContext> listener) {
@@ -302,10 +306,10 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
      * and delete them. If at least one of the aforementioned objects are found and deleted successfully, the listener is invoked with
      * #true, else {@linkplain ResourceNotFoundException} is thrown.
      *
-     * @param id                   asynchronous search id
+     * @param id                          asynchronous search id
      * @param asynchronousSearchContextId context id
-     * @param user                 current user
-     * @param listener             listener to invoke on deletion or failure to do so
+     * @param user                        current user
+     * @param listener                    listener to invoke on deletion or failure to do so
      */
     public void freeContext(String id, AsynchronousSearchContextId asynchronousSearchContextId, User user,
                             ActionListener<Boolean> listener) {
@@ -332,6 +336,10 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
         }
     }
 
+    public Object getLock() {
+        return lock;
+    }
+
     private void cancelTask(AsynchronousSearchActiveContext asynchronousSearchContext, String reason,
                             ActionListener<CancelTasksResponse> listener) {
         CancelTasksRequest cancelTasksRequest = new CancelTasksRequest()
@@ -340,6 +348,7 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
         client.admin().cluster().cancelTasks(cancelTasksRequest, listener);
 
     }
+
     private boolean shouldCancel(AsynchronousSearchActiveContext asynchronousSearchContext) {
         return asynchronousSearchContext.getTask() != null && asynchronousSearchContext.getTask().isCancelled() == false
                 && asynchronousSearchContext.isCompleted() == false;
@@ -350,7 +359,8 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
     private void cancelAndFreeActiveAndPersistedContext(AsynchronousSearchActiveContext asynchronousSearchContext,
                                                         ActionListener<Boolean> listener, User user) {
         // if there are no context found to be cleaned up we throw a ResourceNotFoundException
-        AtomicReference<Releasable> releasableReference = new AtomicReference<>(() -> {});
+        AtomicReference<Releasable> releasableReference = new AtomicReference<>(() -> {
+        });
         ActionListener<Boolean> releasableListener = runAfter(listener, releasableReference.get()::close);
         GroupedActionListener<Boolean> groupedDeletionListener = new GroupedActionListener<>(
                 wrap((responses) -> {
@@ -439,7 +449,7 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
     }
 
     private void handleCancelTaskPermitAcquired(AsynchronousSearchActiveContext asynchronousSearchContext,
-                                                    ActionListener<Boolean> listener, String cancelTaskReason) {
+                                                ActionListener<Boolean> listener, String cancelTaskReason) {
         if (shouldCancel(asynchronousSearchContext)) {
             cancelTask(asynchronousSearchContext, cancelTaskReason, wrap(cancelTasksResponse -> {
                         logger.debug("Successfully cancelled tasks [{}] with asynchronous search [{}] with response [{}]",
@@ -451,8 +461,8 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
                     },
                     e -> {
                         logger.error(() -> new ParameterizedMessage(
-                                "Failed to cancel task [{}] with asynchronous search [{}] with exception",
-                                asynchronousSearchContext.getTask(), asynchronousSearchContext.getAsynchronousSearchId()),
+                                        "Failed to cancel task [{}] with asynchronous search [{}] with exception",
+                                        asynchronousSearchContext.getTask(), asynchronousSearchContext.getAsynchronousSearchId()),
                                 e);
                         //no onCancelled hook due to failure, so we invoke free active context
                         listener.onResponse(freeActiveContext(asynchronousSearchContext));
@@ -500,11 +510,11 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
      * and on acquisition of permit, a check is performed to see if response has been persisted in system index. If true, we update
      * expiration in index. Else we update expiration field in {@linkplain AsynchronousSearchActiveContext}.
      *
-     * @param id                   asynchronous search id
-     * @param keepAlive            the new keep alive duration
+     * @param id                          asynchronous search id
+     * @param keepAlive                   the new keep alive duration
      * @param asynchronousSearchContextId asynchronous search context id
-     * @param user                 current user
-     * @param listener             listener to invoke after updating expiration.
+     * @param user                        current user
+     * @param listener                    listener to invoke after updating expiration.
      */
     public void updateKeepAliveAndGetContext(String id, TimeValue keepAlive, AsynchronousSearchContextId asynchronousSearchContextId,
                                              User user, ActionListener<AsynchronousSearchContext> listener) {
@@ -607,19 +617,23 @@ public class AsynchronousSearchService extends AbstractLifecycleComponent implem
         stateMachine.registerTransition(new AsynchronousSearchTransition<>(SUCCEEDED, PERSISTING,
                 (s, e) -> asynchronousSearchPostProcessor.persistResponse((AsynchronousSearchActiveContext) e.asynchronousSearchContext(),
                         e.getAsynchronousSearchPersistenceModel()),
-                (contextId, listener) -> {}, BeginPersistEvent.class));
+                (contextId, listener) -> {
+                }, BeginPersistEvent.class));
 
         stateMachine.registerTransition(new AsynchronousSearchTransition<>(FAILED, PERSISTING,
                 (s, e) -> asynchronousSearchPostProcessor.persistResponse((AsynchronousSearchActiveContext) e.asynchronousSearchContext(),
                         e.getAsynchronousSearchPersistenceModel()),
-                (contextId, listener) -> {}, BeginPersistEvent.class));
+                (contextId, listener) -> {
+                }, BeginPersistEvent.class));
 
         stateMachine.registerTransition(new AsynchronousSearchTransition<>(PERSISTING, PERSIST_SUCCEEDED,
-                (s, e) -> {},
+                (s, e) -> {
+                },
                 (contextId, listener) -> listener.onContextPersisted(contextId), SearchResponsePersistedEvent.class));
 
         stateMachine.registerTransition(new AsynchronousSearchTransition<>(PERSISTING, PERSIST_FAILED,
-                (s, e) -> {},
+                (s, e) -> {
+                },
                 (contextId, listener) -> listener.onContextPersistFailed(contextId), SearchResponsePersistFailedEvent.class));
 
         stateMachine.registerTransition(new AsynchronousSearchTransition<>(RUNNING, CLOSED,

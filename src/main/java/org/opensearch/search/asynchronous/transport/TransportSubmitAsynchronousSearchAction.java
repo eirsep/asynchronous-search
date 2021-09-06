@@ -25,19 +25,6 @@
 
 package org.opensearch.search.asynchronous.transport;
 
-import org.opensearch.commons.ConfigConstants;
-import org.opensearch.commons.authuser.User;
-import org.opensearch.search.asynchronous.action.SubmitAsynchronousSearchAction;
-import org.opensearch.search.asynchronous.context.AsynchronousSearchContext;
-import org.opensearch.search.asynchronous.context.active.AsynchronousSearchActiveContext;
-import org.opensearch.search.asynchronous.listener.AsynchronousSearchProgressListener;
-import org.opensearch.search.asynchronous.listener.AsynchronousSearchTimeoutWrapper;
-import org.opensearch.search.asynchronous.listener.PrioritizedActionListener;
-import org.opensearch.search.asynchronous.plugin.AsynchronousSearchPlugin;
-import org.opensearch.search.asynchronous.request.SubmitAsynchronousSearchRequest;
-import org.opensearch.search.asynchronous.response.AsynchronousSearchResponse;
-import org.opensearch.search.asynchronous.service.AsynchronousSearchService;
-import org.opensearch.search.asynchronous.task.AsynchronousSearchTask;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
@@ -49,7 +36,20 @@ import org.opensearch.action.support.ActionFilters;
 import org.opensearch.action.support.HandledTransportAction;
 import org.opensearch.cluster.service.ClusterService;
 import org.opensearch.common.inject.Inject;
+import org.opensearch.commons.ConfigConstants;
+import org.opensearch.commons.authuser.User;
 import org.opensearch.search.SearchService;
+import org.opensearch.search.asynchronous.action.SubmitAsynchronousSearchAction;
+import org.opensearch.search.asynchronous.context.AsynchronousSearchContext;
+import org.opensearch.search.asynchronous.context.active.AsynchronousSearchActiveContext;
+import org.opensearch.search.asynchronous.listener.AsynchronousSearchProgressListener;
+import org.opensearch.search.asynchronous.listener.AsynchronousSearchTimeoutWrapper;
+import org.opensearch.search.asynchronous.listener.PrioritizedActionListener;
+import org.opensearch.search.asynchronous.plugin.AsynchronousSearchPlugin;
+import org.opensearch.search.asynchronous.request.SubmitAsynchronousSearchRequest;
+import org.opensearch.search.asynchronous.response.AsynchronousSearchResponse;
+import org.opensearch.search.asynchronous.service.AsynchronousSearchService;
+import org.opensearch.search.asynchronous.task.AsynchronousSearchTask;
 import org.opensearch.tasks.Task;
 import org.opensearch.tasks.TaskId;
 import org.opensearch.threadpool.ThreadPool;
@@ -74,8 +74,8 @@ public class TransportSubmitAsynchronousSearchAction extends HandledTransportAct
 
     @Inject
     public TransportSubmitAsynchronousSearchAction(ThreadPool threadPool, TransportService transportService, ClusterService clusterService,
-                                            ActionFilters actionFilters, AsynchronousSearchService asynchronousSearchService,
-                                            TransportSearchAction transportSearchAction, SearchService searchService) {
+                                                   ActionFilters actionFilters, AsynchronousSearchService asynchronousSearchService,
+                                                   TransportSearchAction transportSearchAction, SearchService searchService) {
         super(SubmitAsynchronousSearchAction.NAME, transportService, actionFilters, SubmitAsynchronousSearchRequest::new);
         this.threadPool = threadPool;
         this.clusterService = clusterService;
@@ -92,7 +92,7 @@ public class TransportSubmitAsynchronousSearchAction extends HandledTransportAct
         try {
             final long relativeStartTimeInMillis = threadPool.relativeTimeInMillis();
             asynchronousSearchContext = asynchronousSearchService.createAndStoreContext(request, relativeStartTimeInMillis,
-                    () -> searchService.aggReduceContextBuilder(request.getSearchRequest()), user);
+                    () -> searchService.aggReduceContextBuilder(request.getSearchRequest()), user, asynchronousSearchService.getLock());
             assert asynchronousSearchContext.getAsynchronousSearchProgressListener() != null
                     : "missing progress listener for an active context";
             AsynchronousSearchProgressListener progressListener = asynchronousSearchContext.getAsynchronousSearchProgressListener();
@@ -108,7 +108,8 @@ public class TransportSubmitAsynchronousSearchAction extends HandledTransportAct
                     PrioritizedActionListener<AsynchronousSearchResponse> wrappedListener = AsynchronousSearchTimeoutWrapper
                             .wrapScheduledTimeout(threadPool, request.getWaitForCompletionTimeout(),
                                     AsynchronousSearchPlugin.OPEN_DISTRO_ASYNC_SEARCH_GENERIC_THREAD_POOL_NAME, listener,
-                                    (actionListener) -> { progressListener.searchProgressActionListener().removeListener(actionListener);
+                                    (actionListener) -> {
+                                        progressListener.searchProgressActionListener().removeListener(actionListener);
                                         listener.onResponse(context.getAsynchronousSearchResponse());
                                     });
                     progressListener.searchProgressActionListener().addOrExecuteListener(wrappedListener);

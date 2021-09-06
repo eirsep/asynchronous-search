@@ -25,7 +25,6 @@
 
 package org.opensearch.search.asynchronous.listener;
 
-import org.opensearch.search.asynchronous.response.AsynchronousSearchResponse;
 import org.apache.lucene.search.TotalHits;
 import org.apache.lucene.util.SetOnce;
 import org.opensearch.action.search.SearchProgressActionListener;
@@ -36,6 +35,7 @@ import org.opensearch.search.SearchHits;
 import org.opensearch.search.SearchShardTarget;
 import org.opensearch.search.aggregations.InternalAggregation;
 import org.opensearch.search.aggregations.InternalAggregations;
+import org.opensearch.search.asynchronous.response.AsynchronousSearchResponse;
 import org.opensearch.search.internal.InternalSearchResponse;
 
 import java.util.Collections;
@@ -61,17 +61,19 @@ public class AsynchronousSearchProgressListener extends SearchProgressActionList
     private final Function<SearchResponse, AsynchronousSearchResponse> successFunction;
     private final Function<Exception, AsynchronousSearchResponse> failureFunction;
     private final ExecutorService executor;
+    private final Object lock;
 
     public AsynchronousSearchProgressListener(long relativeStartMillis, Function<SearchResponse,
-                                       AsynchronousSearchResponse> successFunction,
-                                       Function<Exception, AsynchronousSearchResponse> failureFunction,
-                                       ExecutorService executor, LongSupplier relativeTimeSupplier,
-                                       Supplier<InternalAggregation.ReduceContextBuilder> reduceContextBuilder) {
+            AsynchronousSearchResponse> successFunction,
+                                              Function<Exception, AsynchronousSearchResponse> failureFunction,
+                                              ExecutorService executor, LongSupplier relativeTimeSupplier,
+                                              Supplier<InternalAggregation.ReduceContextBuilder> reduceContextBuilder, Object lock) {
         this.successFunction = successFunction;
         this.failureFunction = failureFunction;
         this.executor = executor;
         this.partialResultsHolder = new PartialResultsHolder(relativeStartMillis, relativeTimeSupplier, reduceContextBuilder);
         this.searchProgressActionListener = new CompositeSearchProgressActionListener<AsynchronousSearchResponse>();
+        this.lock = lock;
     }
 
 
@@ -139,18 +141,22 @@ public class AsynchronousSearchProgressListener extends SearchProgressActionList
 
     @Override
     protected void onQueryResult(int shardIndex) {
-        try {
-            Thread.sleep(5000);
-        } catch (Exception e) {
+        synchronized (lock) {
+            try {
+                Thread.sleep(10000);
+            } catch (Exception e) {
+            }
         }
         assert shardIndex < partialResultsHolder.totalShards.get();
         onShardResult(shardIndex);
     }
 
     private synchronized void onShardResult(int shardIndex) {
-        try {
-            Thread.sleep(5000);
-        } catch (Exception e) {
+        synchronized (lock) {
+            try {
+                Thread.sleep(10000);
+            } catch (Exception e) {
+            }
         }
         if (partialResultsHolder.successfulShardIds.contains(shardIndex) == false) {
             partialResultsHolder.successfulShardIds.add(shardIndex);
