@@ -31,7 +31,6 @@ import org.opensearch.transport.TransportService;
 
 public class TransportDeletePITAction extends HandledTransportAction<DeletePITRequest, DeletePITResponse> {
 
-    public static final String CREATE_PIT = "delete_pit";
     private SearchService searchService;
     private final NamedWriteableRegistry namedWriteableRegistry;
     private TransportSearchAction transportSearchAction;

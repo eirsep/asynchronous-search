@@ -17,7 +17,7 @@ import org.opensearch.search.asynchronous.response.DeletePITResponse;
 public class DeletePITAction extends ActionType<DeletePITResponse> {
 
     public static final DeletePITAction INSTANCE = new DeletePITAction();
-    public static final String NAME = "indices:data/delete/pit";
+    public static final String NAME = "indices:data/write/deletepit";
 
     private DeletePITAction() {
         super(NAME, DeletePITResponse::new);

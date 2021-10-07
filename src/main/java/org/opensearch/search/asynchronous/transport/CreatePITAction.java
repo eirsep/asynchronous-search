@@ -17,7 +17,7 @@ import org.opensearch.search.asynchronous.response.PITResponse;
 public class CreatePITAction extends ActionType<PITResponse> {
 
     public static final CreatePITAction INSTANCE = new CreatePITAction();
-    public static final String NAME = "indices:data/create/pit";
+    public static final String NAME = "indices:data/write/createpit";
 
     private CreatePITAction() {
         super(NAME, PITResponse::new);
