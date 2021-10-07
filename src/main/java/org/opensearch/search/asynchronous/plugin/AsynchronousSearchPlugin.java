@@ -30,6 +30,8 @@ import org.opensearch.search.asynchronous.action.DeleteAsynchronousSearchAction;
 import org.opensearch.search.asynchronous.action.GetAsynchronousSearchAction;
 import org.opensearch.search.asynchronous.action.SubmitAsynchronousSearchAction;
 import org.opensearch.search.asynchronous.context.active.AsynchronousSearchActiveStore;
+import org.opensearch.search.asynchronous.rest.RestCreatePITAction;
+import org.opensearch.search.asynchronous.rest.RestDeletePITAction;
 import org.opensearch.search.asynchronous.service.AsynchronousSearchPersistenceService;
 import org.opensearch.search.asynchronous.management.AsynchronousSearchManagementService;
 import org.opensearch.search.asynchronous.rest.RestAsynchronousSearchStatsAction;
@@ -39,8 +41,12 @@ import org.opensearch.search.asynchronous.rest.RestSubmitAsynchronousSearchActio
 import org.opensearch.search.asynchronous.service.AsynchronousSearchService;
 import org.opensearch.search.asynchronous.settings.LegacyOpendistroAsynchronousSearchSettings;
 import org.opensearch.search.asynchronous.stats.InternalAsynchronousSearchStats;
+import org.opensearch.search.asynchronous.transport.CreatePITAction;
+import org.opensearch.search.asynchronous.transport.DeletePITAction;
 import org.opensearch.search.asynchronous.transport.TransportAsynchronousSearchStatsAction;
+import org.opensearch.search.asynchronous.transport.TransportCreatePITAction;
 import org.opensearch.search.asynchronous.transport.TransportDeleteAsynchronousSearchAction;
+import org.opensearch.search.asynchronous.transport.TransportDeletePITAction;
 import org.opensearch.search.asynchronous.transport.TransportGetAsynchronousSearchAction;
 import org.opensearch.search.asynchronous.transport.TransportSubmitAsynchronousSearchAction;
 import org.opensearch.action.ActionRequest;
@@ -135,6 +141,8 @@ public class AsynchronousSearchPlugin extends Plugin implements ActionPlugin, Sy
                 new ActionHandler<>(SubmitAsynchronousSearchAction.INSTANCE, TransportSubmitAsynchronousSearchAction.class),
                 new ActionHandler<>(AsynchronousSearchStatsAction.INSTANCE, TransportAsynchronousSearchStatsAction.class),
                 new ActionHandler<>(GetAsynchronousSearchAction.INSTANCE, TransportGetAsynchronousSearchAction.class),
+                new ActionHandler<>(CreatePITAction.INSTANCE, TransportCreatePITAction.class),
+                new ActionHandler<>(DeletePITAction.INSTANCE, TransportDeletePITAction.class),
                 new ActionHandler<>(DeleteAsynchronousSearchAction.INSTANCE, TransportDeleteAsynchronousSearchAction.class));
     }
 
@@ -167,6 +175,8 @@ public class AsynchronousSearchPlugin extends Plugin implements ActionPlugin, Sy
                 new RestSubmitAsynchronousSearchAction(),
                 new RestGetAsynchronousSearchAction(),
                 new RestDeleteAsynchronousSearchAction(),
+                new RestCreatePITAction(),
+                new RestDeletePITAction(),
                 new RestAsynchronousSearchStatsAction());
     }
 }
