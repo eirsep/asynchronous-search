@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.unmodifiableList;
+import static org.opensearch.rest.RestRequest.Method.DELETE;
 import static org.opensearch.rest.RestRequest.Method.POST;
 
 public class RestDeletePITAction extends BaseRestHandler {
@@ -40,6 +41,6 @@ public class RestDeletePITAction extends BaseRestHandler {
     @Override
     public List<Route> routes() {
         return unmodifiableList(Collections.singletonList(
-                new Route(POST, "/_pit/{pit_id}")));
+                new Route(DELETE, "/_pit/{pit_id}")));
     }
 }
