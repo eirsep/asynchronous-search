@@ -25,21 +25,33 @@
 
 package org.opensearch.search.asynchronous.rest;
 
-import org.opensearch.search.asynchronous.action.GetAsynchronousSearchAction;
-import org.opensearch.search.asynchronous.request.GetAsynchronousSearchRequest;
 import org.opensearch.client.node.NodeClient;
 import org.opensearch.rest.BaseRestHandler;
 import org.opensearch.rest.RestRequest;
 import org.opensearch.rest.action.RestStatusToXContentListener;
+import org.opensearch.search.asynchronous.action.GetAsynchronousSearchAction;
 import org.opensearch.search.asynchronous.plugin.AsynchronousSearchPlugin;
+import org.opensearch.search.asynchronous.request.GetAsynchronousSearchRequest;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.opensearch.rest.RestRequest.Method.GET;
 
 public class RestGetAsynchronousSearchAction extends BaseRestHandler {
+
+    public static final String TOTAL_HITS_AS_INT_PARAM = "rest_total_hits_as_int";
+    public static final String TYPED_KEYS_PARAM = "typed_keys";
+    private static final Set<String> RESPONSE_PARAMS;
+
+    static {
+        final Set<String> responseParams = new HashSet<>(Arrays.asList(TYPED_KEYS_PARAM, TOTAL_HITS_AS_INT_PARAM));
+        RESPONSE_PARAMS = Collections.unmodifiableSet(responseParams);
+    }
 
     @Override
     public String getName() {
@@ -70,5 +82,10 @@ public class RestGetAsynchronousSearchAction extends BaseRestHandler {
         return channel -> {
             client.execute(GetAsynchronousSearchAction.INSTANCE, getRequest, new RestStatusToXContentListener<>(channel));
         };
+    }
+
+    @Override
+    protected Set<String> responseParams() {
+        return RESPONSE_PARAMS;
     }
 }
