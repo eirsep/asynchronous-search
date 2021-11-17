@@ -5,7 +5,7 @@
 Asynchronous search makes it possible for users to run such queries without worrying about the query timing out. 
 These queries run in the background, and users can track the progress, and retrieve partial results as they become available.
 
-The asynchronous search plugin supports the below operations
+The asynchronous search plugin supports the below operations:
 
 **1. Submit asynchronous search**
 ```
