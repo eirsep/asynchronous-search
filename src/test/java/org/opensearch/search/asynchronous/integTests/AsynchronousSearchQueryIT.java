@@ -12,7 +12,6 @@ import org.opensearch.search.asynchronous.response.AsynchronousSearchResponse;
 import org.opensearch.search.asynchronous.utils.TestClientUtils;
 import org.apache.lucene.analysis.MockTokenizer;
 import org.apache.lucene.analysis.pattern.PatternReplaceCharFilter;
-import org.apache.lucene.util.LuceneTestCase;
 import org.opensearch.action.admin.indices.refresh.RefreshRequest;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
