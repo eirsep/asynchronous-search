@@ -68,8 +68,6 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
  * The intent of these tests is to verify that various elements of a SearchResponse, including aggregations, hits, highlighters, are
  * serialized and deserialized successfully
  */
-@LuceneTestCase.SuppressCodecs("*")
-@OpenSearchIntegTestCase.ClusterScope// requires custom completion format
 public class AsynchronousSearchQueryIT extends OpenSearchIntegTestCase {
 
     public static final int NUM_SHARDS = 2;
