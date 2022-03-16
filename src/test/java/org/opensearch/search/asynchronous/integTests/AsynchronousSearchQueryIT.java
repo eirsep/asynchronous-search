@@ -265,8 +265,6 @@ public class AsynchronousSearchQueryIT extends OpenSearchIntegTestCase {
     }
 
     public static class MockAnalysisPlugin extends Plugin implements AnalysisPlugin {
-
-
         @Override
         public Map<String, AnalysisModule.AnalysisProvider<CharFilterFactory>> getCharFilters() {
             return singletonMap("mock_pattern_replace", (indexSettings, env, name, settings) -> {
