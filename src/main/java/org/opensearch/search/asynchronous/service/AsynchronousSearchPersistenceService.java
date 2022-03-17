@@ -327,7 +327,7 @@ public class AsynchronousSearchPersistenceService {
 
     private void createIndexAndDoStoreResult(String id, AsynchronousSearchPersistenceModel persistenceModel,
                                              ActionListener<IndexResponse> listener) {
-        client.admin().indices().prepareCreate(ASYNC_SEARCH_RESPONSE_INDEX).setSource(mapping())
+        client.admin().indices().prepareCreate(ASYNC_SEARCH_RESPONSE_INDEX).addMapping(MAPPING_TYPE, mapping())
                 .setSettings(indexSettings()).execute(ActionListener.wrap(createIndexResponse -> doStoreResult(id, persistenceModel,
                 listener), exception -> {
             if (ExceptionsHelper.unwrapCause(exception) instanceof ResourceAlreadyExistsException) {
@@ -351,8 +351,7 @@ public class AsynchronousSearchPersistenceService {
         source.put(START_TIME_MILLIS, model.getStartTimeMillis());
         source.put(USER, model.getUser());
         IndexRequestBuilder indexRequestBuilder = client.prepareIndex(ASYNC_SEARCH_RESPONSE_INDEX)
-                .setId(id)
-                .setSource(source, XContentType.JSON);
+                .setId(id).setSource(source, XContentType.JSON);
         doStoreResult(STORE_BACKOFF_POLICY.iterator(), indexRequestBuilder, listener);
     }
 
@@ -395,7 +394,6 @@ public class AsynchronousSearchPersistenceService {
         try {
             XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON);
             builder.startObject()
-                    .startObject("mappings")
                     .startObject("properties")
                     .startObject(START_TIME_MILLIS)
                     .field("type", "date")
@@ -410,7 +408,6 @@ public class AsynchronousSearchPersistenceService {
                     .endObject()
                     .startObject(ERROR)
                     .field("type", "binary")
-                    .endObject()
                     .endObject()
                     .endObject()
                     .endObject();
